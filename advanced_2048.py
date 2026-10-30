@@ -60,7 +60,7 @@ class Advanced2048:
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         
         self.center_frame = tk.Frame(self.main_frame)
-        self.center_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.center_frame.pack(expand=True, padx=20, pady=20)
         
         self.left_frame = tk.Frame(self.center_frame)
         self.left_frame.pack(side=tk.LEFT, padx=40, pady=20)

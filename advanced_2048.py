@@ -5,6 +5,10 @@ import json
 import os
 import time
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+HIGHSCORES_FILE = os.path.join(BASE_DIR, "highscores.json")
+SAVE_FILE = os.path.join(BASE_DIR, "2048_save.json")
+
 COLORS = {
     'light': {
         'bg': '#faf8ef',
@@ -45,10 +49,12 @@ class Advanced2048:
         
         self.setup_ui()
         
-        if os.path.exists("2048_save.json"):
+        if os.path.exists(SAVE_FILE):
             if messagebox.askyesno("Resume", "Resume previous game?"):
                 self.load_game()
             else:
+                try: os.remove(SAVE_FILE)
+                except Exception: pass
                 self.init_game(4)
         else:
             self.init_game(4)
@@ -469,14 +475,14 @@ class Advanced2048:
             self.root.after(600, self.root.bell)
 
     def load_highscores(self):
-        if os.path.exists("highscores.json"):
-            with open("highscores.json", "r") as f:
+        if os.path.exists(HIGHSCORES_FILE):
+            with open(HIGHSCORES_FILE, "r") as f:
                 self.highscores = json.load(f)
         else:
             self.highscores = []
 
     def check_highscore(self):
-        if len(self.highscores) < 5 or self.score > min(h['score'] for h in self.highscores):
+        if self.score > 0 and (len(self.highscores) < 5 or self.score > min(h['score'] for h in self.highscores)):
             initials = simpledialog.askstring("High Score!", "New high score! Enter 3 initials:", parent=self.root)
             if initials:
                 mode = "Normal"
@@ -493,7 +499,7 @@ class Advanced2048:
                 })
                 self.highscores.sort(key=lambda x: x['score'], reverse=True)
                 self.highscores = self.highscores[:5]
-                with open("highscores.json", "w") as f:
+                with open(HIGHSCORES_FILE, "w") as f:
                     json.dump(self.highscores, f)
                 return True
         return False
@@ -501,7 +507,7 @@ class Advanced2048:
     def show_highscores(self):
         top = tk.Toplevel(self.root)
         top.title("High Scores")
-        top.geometry("300x200")
+        top.geometry("420x220")
         tk.Label(top, text="Top 5 Scores", font=("Helvetica", 14, "bold")).pack(pady=10)
         
         if not self.highscores:
@@ -596,15 +602,16 @@ class Advanced2048:
                 },
                 "heatmap_counts": self.heatmap_counts
             }
-            with open("2048_save.json", "w") as f:
+            with open(SAVE_FILE, "w") as f:
                 json.dump(save_data, f)
         else:
-            if os.path.exists("2048_save.json"):
-                os.remove("2048_save.json")
+            if os.path.exists(SAVE_FILE):
+                try: os.remove(SAVE_FILE)
+                except Exception: pass
         self.root.destroy()
 
     def load_game(self):
-        with open("2048_save.json", "r") as f:
+        with open(SAVE_FILE, "r") as f:
             data = json.load(f)
             
         self.grid_size = data["grid_size"]

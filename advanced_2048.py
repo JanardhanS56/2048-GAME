@@ -17,7 +17,7 @@ COLORS = {
         'rock': '#555555',
         'text_dark': '#776e65',
         'text_light': '#f9f6f2',
-        2: '#eee4da', 4: '#ede0c8', 8: '#f2b179',
+        1: '#e4dbd0', 2: '#eee4da', 4: '#ede0c8', 8: '#f2b179',
         16: '#f59563', 32: '#f67c5f', 64: '#f65e3b',
         128: '#edcf72', 256: '#edcc61', 512: '#edc850',
         1024: '#edc53f', 2048: '#edc22e', 4096: '#3e3e3b'
@@ -29,7 +29,7 @@ COLORS = {
         'rock': '#111111',
         'text_dark': '#e0e0e0',
         'text_light': '#ffffff',
-        2: '#4a4a4a', 4: '#5a5a5a', 8: '#7a5a3a',
+        1: '#3f3f3f', 2: '#4a4a4a', 4: '#5a5a5a', 8: '#7a5a3a',
         16: '#9a5a3a', 32: '#ba5a3a', 64: '#da5a3a',
         128: '#a08a3a', 256: '#c0aa3a', 512: '#e0ca3a',
         1024: '#f0da3a', 2048: '#ffea3a', 4096: '#ffffff'
@@ -376,7 +376,10 @@ class Advanced2048:
             tiles = [(r,c) for r in range(self.grid_size) for c in range(self.grid_size) if self.matrix[r][c] > 0]
             if tiles:
                 zr, zc = random.choice(tiles)
-                self.matrix[zr][zc] //= 2
+                if self.matrix[zr][zc] <= 2:
+                    self.matrix[zr][zc] = 0
+                else:
+                    self.matrix[zr][zc] //= 2
                 
         self.spawn_tile()
         

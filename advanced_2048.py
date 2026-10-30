@@ -112,6 +112,9 @@ class Advanced2048:
         tk.Button(self.right_frame, text="High Scores", command=self.show_highscores).pack(pady=10)
 
     def change_size(self, val):
+        if self.animating:
+            self.size_var.set(f"{self.grid_size}x{self.grid_size}")
+            return
         size = int(val[0])
         if size != self.grid_size:
             if messagebox.askyesno("Restart", "Changing size will restart the game. Continue?"):
@@ -143,6 +146,12 @@ class Advanced2048:
             self.on_close()
 
     def init_game(self, size=4):
+        if hasattr(self, 'anim_after_id') and self.anim_after_id:
+            try:
+                self.root.after_cancel(self.anim_after_id)
+            except Exception:
+                pass
+            self.anim_after_id = None
         self.grid_size = size
         self.win_target = {3:1024, 4:2048, 5:4096}.get(size, 2048)
         self.matrix = [[0]*size for _ in range(size)]
@@ -320,8 +329,9 @@ class Advanced2048:
             for item in anim_data:
                 self.canvas.move(item['rect'], item['dx'], item['dy'])
                 self.canvas.move(item['text'], item['dx'], item['dy'])
-            self.root.after(delay, self.animate_step, anim_data, steps_left-1, delay, new_mat, score_inc, merges, merges_pos)
+            self.anim_after_id = self.root.after(delay, self.animate_step, anim_data, steps_left-1, delay, new_mat, score_inc, merges, merges_pos)
         else:
+            self.anim_after_id = None
             self.animating = False
             self.finalize_move(new_mat, score_inc, merges, merges_pos)
 
@@ -561,6 +571,12 @@ class Advanced2048:
             self.draw_grid()
 
     def on_close(self):
+        if hasattr(self, 'anim_after_id') and self.anim_after_id:
+            try:
+                self.root.after_cancel(self.anim_after_id)
+            except Exception:
+                pass
+            self.anim_after_id = None
         if not self.game_over:
             save_data = {
                 "grid_size": self.grid_size,

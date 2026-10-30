@@ -411,25 +411,12 @@ class Advanced2048:
             self.show_confetti()
             self.update_ui()
             
-        empty = [(r,c) for r in range(self.grid_size) for c in range(self.grid_size) if self.matrix[r][c] == 0]
-        if not empty:
-            can_move = False
-            for r in range(self.grid_size):
-                for c in range(self.grid_size):
-                    val = self.matrix[r][c]
-                    if val > 0:
-                        for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
-                            nr, nc = r+dr, c+dc
-                            if 0 <= nr < self.grid_size and 0 <= nc < self.grid_size:
-                                if self.matrix[nr][nc] == val:
-                                    can_move = True
-                                    break
-                if can_move: break
-            if not can_move:
-                self.game_over = True
-                if not self.mute_var.get():
-                    self.play_sound("lose")
-                self.handle_game_over()
+        can_move = any(self.do_move(self.matrix, d, self.grid_size)[0] != self.matrix for d in ['Up', 'Down', 'Left', 'Right'])
+        if not can_move:
+            self.game_over = True
+            if not self.mute_var.get():
+                self.play_sound("lose")
+            self.handle_game_over()
 
     def handle_game_over(self):
         messagebox.showinfo("Game Over", f"Game Over! Final Score: {self.score}")

@@ -382,7 +382,9 @@ class Advanced2048:
                 
         if len(merges) > 0: self.achievements["First Merge"] = True
         if self.score > 9000: self.achievements["Over 9000"] = True
-        if set([4,8,16,32,64]).issubset(set(merges)): self.achievements["Snake"] = True
+        board_tiles = set(val for row in self.matrix for val in row)
+        if set([4,8,16,32,64]).issubset(board_tiles) or set([4,8,16,32,64]).issubset(set(merges)):
+            self.achievements["Snake"] = True
         if rocks_crushed > 0: self.achievements["Rock Crusher"] = True
         
         self.update_ui()
@@ -414,7 +416,7 @@ class Advanced2048:
                     won_now = True
                     
         if won_now:
-            if self.stats['twos_merged'] <= 10:
+            if self.stats['twos_merged'] <= 10 or (self.rock_var.get() and not self.achievements.get("Rock Crusher", False)):
                 self.achievements["Pacifist"] = True
             if not self.mute_var.get():
                 self.play_sound("win")

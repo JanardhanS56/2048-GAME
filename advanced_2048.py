@@ -44,6 +44,10 @@ class Advanced2048:
         
         self.CELL_SIZE = 100
         self.PADDING = 10
+        self.grid_size = 4
+        self.matrix = [[0]*4 for _ in range(4)]
+        self.heatmap_counts = {}
+        self.anim_after_id = None
         self.highscores = []
         self.load_highscores()
         
@@ -90,7 +94,7 @@ class Advanced2048:
         tk.OptionMenu(size_frame, self.size_var, "3x3", "4x4", "5x5", command=self.change_size).pack(side=tk.LEFT)
         
         self.dark_var = tk.BooleanVar(value=False)
-        tk.Checkbutton(self.right_frame, text="Dark Mode (D)", variable=self.dark_var, command=self.draw_grid).pack(anchor=tk.W)
+        tk.Checkbutton(self.right_frame, text="Dark Mode (D)", variable=self.dark_var, command=self.apply_theme).pack(anchor=tk.W)
         
         self.hard_var = tk.BooleanVar(value=False)
         tk.Checkbutton(self.right_frame, text="Hard Mode (H)", variable=self.hard_var).pack(anchor=tk.W)
@@ -116,6 +120,7 @@ class Advanced2048:
         tk.Label(self.right_frame, textvariable=self.achiev_var, justify=tk.LEFT, fg="green").pack(anchor=tk.W)
         
         tk.Button(self.right_frame, text="High Scores", command=self.show_highscores).pack(pady=10)
+        self.apply_theme()
 
     def change_size(self, val):
         if self.animating:
@@ -137,7 +142,7 @@ class Advanced2048:
         elif key == 'right': self.make_move('Right')
         elif key in ['d', 't']: 
             self.dark_var.set(not self.dark_var.get())
-            self.draw_grid()
+            self.apply_theme()
         elif key == 'h':
             self.hard_var.set(not self.hard_var.get())
         elif key == 'c':
@@ -359,6 +364,13 @@ class Advanced2048:
         if merges and not self.mute_var.get():
             self.play_sound("merge")
             
+        if merges:
+            self.stats['current_streak'] = self.stats.get('current_streak', 0) + 1
+            if self.stats['current_streak'] > self.stats.get('longest_streak', 0):
+                self.stats['longest_streak'] = self.stats['current_streak']
+        else:
+            self.stats['current_streak'] = 0
+            
         self.stats['total_merges'] += len(merges)
         for m in merges:
             self.stats['merge_counts'][str(m)] = self.stats['merge_counts'].get(str(m), 0) + 1
@@ -520,7 +532,33 @@ class Advanced2048:
                 text = f"{i+1}. {hs['initials']} - {hs['score']} ({hs['size']} {hs['mode']})"
                 tk.Label(top, text=text).pack(anchor=tk.W, padx=20)
 
+    def apply_theme(self):
+        theme = COLORS['dark'] if self.dark_var.get() else COLORS['light']
+        bg = theme['bg']
+        fg = theme['text_dark']
+        self.root.config(bg=bg)
+        for frame in [self.main_frame, self.center_frame, self.left_frame, self.right_frame]:
+            frame.config(bg=bg)
+        for child in self.right_frame.winfo_children():
+            try:
+                if isinstance(child, tk.Label):
+                    if child.cget("fg") == "green":
+                        child.config(bg=bg)
+                    else:
+                        child.config(bg=bg, fg=fg)
+                elif isinstance(child, tk.Checkbutton):
+                    child.config(bg=bg, fg=fg, selectcolor=theme['grid_bg'], activebackground=bg, activeforeground=fg)
+                elif isinstance(child, tk.Frame):
+                    child.config(bg=bg)
+                    for sub in child.winfo_children():
+                        if isinstance(sub, tk.Label):
+                            sub.config(bg=bg, fg=fg)
+            except Exception:
+                pass
+        self.draw_grid()
+
     def draw_grid(self):
+        if not hasattr(self, 'matrix') or not self.matrix: return
         self.canvas.delete("all")
         theme = COLORS['dark'] if self.dark_var.get() else COLORS['light']
         self.canvas.config(bg=theme['grid_bg'])
@@ -570,6 +608,7 @@ class Advanced2048:
             f"Merges: {self.stats['total_merges']}\n"
             f"Most Merged: {common_merge}\n"
             f"Moves: {self.stats['moves']}\n"
+            f"Merge Streak: {self.stats.get('current_streak', 0)} (Best: {self.stats.get('longest_streak', 0)})\n"
             f"Tiles on board: {avg_tiles}"
         )
         self.stats_var.set(stats_text)
@@ -642,6 +681,7 @@ class Advanced2048:
         self.animating = False
         self.moves_since_zombie = 0
         
+        self.apply_theme()
         self.update_ui()
 
 if __name__ == "__main__":

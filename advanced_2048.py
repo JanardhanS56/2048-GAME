@@ -122,11 +122,11 @@ class Advanced2048:
     def handle_keypress(self, event):
         if self.animating or self.game_over: return
         key = event.keysym.lower()
-        if key in ['up', 'w']: self.make_move('Up')
-        elif key in ['down', 's']: self.make_move('Down')
-        elif key in ['left', 'a']: self.make_move('Left')
-        elif key in ['right', 'd']: self.make_move('Right')
-        elif key == 'd': 
+        if key == 'up': self.make_move('Up')
+        elif key == 'down': self.make_move('Down')
+        elif key == 'left': self.make_move('Left')
+        elif key == 'right': self.make_move('Right')
+        elif key in ['d', 't']: 
             self.dark_var.set(not self.dark_var.get())
             self.draw_grid()
         elif key == 'h':
@@ -139,6 +139,8 @@ class Advanced2048:
             self.rock_var.set(not self.rock_var.get())
         elif key == 'z':
             self.zombie_var.set(not self.zombie_var.get())
+        elif key in ['q', 'escape']:
+            self.on_close()
 
     def init_game(self, size=4):
         self.grid_size = size

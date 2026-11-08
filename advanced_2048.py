@@ -63,7 +63,28 @@ class Advanced2048:
         else:
             self.init_game(4)
             
-        self.root.bind("<Key>", self.handle_keypress)
+        self.root.bind_all("<Key>", self.handle_keypress)
+        for seq in ["<Up>", "<Down>", "<Left>", "<Right>",
+                    "<KP_Up>", "<KP_Down>", "<KP_Left>", "<KP_Right>",
+                    "<w>", "<W>", "<s>", "<S>", "<a>", "<A>", "<d>", "<D>"]:
+            self.root.bind_all(seq, self.handle_keypress)
+
+        self.canvas.config(takefocus=True)
+        self.canvas.bind("<Button-1>", lambda e: (self.canvas.focus_set(), self.root.focus_set()))
+        self.root.bind("<Button-1>", lambda e: self.root.focus_set())
+        self.main_frame.bind("<Button-1>", lambda e: self.root.focus_set())
+
+        self.ensure_focus()
+        self.root.after(100, self.ensure_focus)
+        self.root.after(300, self.ensure_focus)
+
+    def ensure_focus(self):
+        try:
+            self.root.focus_force()
+            self.root.focus_set()
+            self.canvas.focus_set()
+        except Exception:
+            pass
         
     def setup_ui(self):
         self.main_frame = tk.Frame(self.root)
@@ -135,28 +156,60 @@ class Advanced2048:
 
     def handle_keypress(self, event):
         # Rollback: git checkout HEAD -- advanced_2048.py
-        if self.animating or self.game_over: return
-        key = event.keysym.lower()
-        char = getattr(event, 'char', '').lower()
-        if key in ('up', 'w') or char == 'w': self.make_move('Up')
-        elif key in ('down', 's') or char == 's': self.make_move('Down')
-        elif key in ('left', 'a') or char == 'a': self.make_move('Left')
-        elif key in ('right', 'd') or char == 'd': self.make_move('Right')
-        elif key == 't' or char == 't': 
+        if self.game_over: return
+        if self.animating:
+            if hasattr(self, 'anim_start_time') and (time.time() - self.anim_start_time > 0.3):
+                if hasattr(self, 'anim_after_id') and self.anim_after_id:
+                    try: self.root.after_cancel(self.anim_after_id)
+                    except Exception: pass
+                    self.anim_after_id = None
+                self.animating = False
+                self.draw_grid()
+            else:
+                return
+
+        key = (event.keysym or "").lower()
+        char = (getattr(event, 'char', '') or '').lower()
+        keycode = getattr(event, 'keycode', 0)
+
+        # Up: Arrow Up, W, Numpad Up/8, or Windows keycodes (38=Up, 87=W)
+        if key in ('up', 'w', 'kp_up', 'kp_8') or char == 'w' or keycode in (38, 87):
+            self.make_move('Up')
+            return "break"
+        # Down: Arrow Down, S, Numpad Down/2, or Windows keycodes (40=Down, 83=S)
+        elif key in ('down', 's', 'kp_down', 'kp_2') or char == 's' or keycode in (40, 83):
+            self.make_move('Down')
+            return "break"
+        # Left: Arrow Left, A, Numpad Left/4, or Windows keycodes (37=Left, 65=A)
+        elif key in ('left', 'a', 'kp_left', 'kp_4') or char == 'a' or keycode in (37, 65):
+            self.make_move('Left')
+            return "break"
+        # Right: Arrow Right, D, Numpad Right/6, or Windows keycodes (39=Right, 68=D)
+        elif key in ('right', 'd', 'kp_right', 'kp_6') or char == 'd' or keycode in (39, 68):
+            self.make_move('Right')
+            return "break"
+        elif key == 't' or char == 't' or keycode == 84: 
             self.dark_var.set(not self.dark_var.get())
             self.apply_theme()
-        elif key == 'h' or char == 'h':
+            return "break"
+        elif key == 'h' or char == 'h' or keycode == 72:
             self.hard_var.set(not self.hard_var.get())
-        elif key == 'c' or char == 'c':
+            return "break"
+        elif key == 'c' or char == 'c' or keycode == 67:
             self.update_hint()
-        elif key == 'm' or char == 'm':
+            return "break"
+        elif key == 'm' or char == 'm' or keycode == 77:
             self.mute_var.set(not self.mute_var.get())
-        elif key == 'r' or char == 'r':
+            return "break"
+        elif key == 'r' or char == 'r' or keycode == 82:
             self.rock_var.set(not self.rock_var.get())
-        elif key == 'z' or char == 'z':
+            return "break"
+        elif key == 'z' or char == 'z' or keycode == 90:
             self.zombie_var.set(not self.zombie_var.get())
-        elif key in ['q', 'escape'] or char == 'q':
+            return "break"
+        elif key in ['q', 'escape'] or char == 'q' or keycode in (81, 27):
             self.on_close()
+            return "break"
 
     def init_game(self, size=4):
         if hasattr(self, 'anim_after_id') and self.anim_after_id:
@@ -197,6 +250,7 @@ class Advanced2048:
         self.canvas.config(width=self.CELL_SIZE*size + self.PADDING*(size+1),
                            height=self.CELL_SIZE*size + self.PADDING*(size+1))
         self.update_ui()
+        self.ensure_focus()
 
     def spawn_tile(self):
         empty = [(r,c) for r in range(self.grid_size) for c in range(self.grid_size) if self.matrix[r][c] == 0]
@@ -276,11 +330,23 @@ class Advanced2048:
         return new_matrix, moves, score_inc, merges, merges_pos
 
     def make_move(self, direction):
+        if self.animating:
+            if hasattr(self, 'anim_start_time') and (time.time() - self.anim_start_time > 0.25):
+                if hasattr(self, 'anim_after_id') and self.anim_after_id:
+                    try: self.root.after_cancel(self.anim_after_id)
+                    except Exception: pass
+                    self.anim_after_id = None
+                self.animating = False
+                self.draw_grid()
+            else:
+                return
+
         new_mat, moves, score_inc, merges, merges_pos = self.do_move(self.matrix, direction, self.grid_size)
         if new_mat == self.matrix:
             return 
             
         self.animating = True
+        self.anim_start_time = time.time()
         self.animate_move(moves, new_mat, score_inc, merges, merges_pos)
 
     def create_visual_tile(self, x1, y1, val):
@@ -346,7 +412,10 @@ class Advanced2048:
         else:
             self.anim_after_id = None
             self.animating = False
-            self.finalize_move(new_mat, score_inc, merges, merges_pos)
+            try:
+                self.finalize_move(new_mat, score_inc, merges, merges_pos)
+            except Exception:
+                self.draw_grid()
 
     def finalize_move(self, new_mat, score_inc, merges, merges_pos):
         self.matrix = new_mat
@@ -685,6 +754,7 @@ class Advanced2048:
         
         self.apply_theme()
         self.update_ui()
+        self.ensure_focus()
 
 if __name__ == "__main__":
     root = tk.Tk()

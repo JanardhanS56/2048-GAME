@@ -94,7 +94,7 @@ class Advanced2048:
         tk.OptionMenu(size_frame, self.size_var, "3x3", "4x4", "5x5", command=self.change_size).pack(side=tk.LEFT)
         
         self.dark_var = tk.BooleanVar(value=False)
-        tk.Checkbutton(self.right_frame, text="Dark Mode (D)", variable=self.dark_var, command=self.apply_theme).pack(anchor=tk.W)
+        tk.Checkbutton(self.right_frame, text="Dark Mode (T)", variable=self.dark_var, command=self.apply_theme).pack(anchor=tk.W)
         
         self.hard_var = tk.BooleanVar(value=False)
         tk.Checkbutton(self.right_frame, text="Hard Mode (H)", variable=self.hard_var).pack(anchor=tk.W)
@@ -134,26 +134,28 @@ class Advanced2048:
                 self.size_var.set(f"{self.grid_size}x{self.grid_size}")
 
     def handle_keypress(self, event):
+        # Rollback: git checkout HEAD -- advanced_2048.py
         if self.animating or self.game_over: return
         key = event.keysym.lower()
-        if key == 'up': self.make_move('Up')
-        elif key == 'down': self.make_move('Down')
-        elif key == 'left': self.make_move('Left')
-        elif key == 'right': self.make_move('Right')
-        elif key in ['d', 't']: 
+        char = getattr(event, 'char', '').lower()
+        if key in ('up', 'w') or char == 'w': self.make_move('Up')
+        elif key in ('down', 's') or char == 's': self.make_move('Down')
+        elif key in ('left', 'a') or char == 'a': self.make_move('Left')
+        elif key in ('right', 'd') or char == 'd': self.make_move('Right')
+        elif key == 't' or char == 't': 
             self.dark_var.set(not self.dark_var.get())
             self.apply_theme()
-        elif key == 'h':
+        elif key == 'h' or char == 'h':
             self.hard_var.set(not self.hard_var.get())
-        elif key == 'c':
+        elif key == 'c' or char == 'c':
             self.update_hint()
-        elif key == 'm':
+        elif key == 'm' or char == 'm':
             self.mute_var.set(not self.mute_var.get())
-        elif key == 'r':
+        elif key == 'r' or char == 'r':
             self.rock_var.set(not self.rock_var.get())
-        elif key == 'z':
+        elif key == 'z' or char == 'z':
             self.zombie_var.set(not self.zombie_var.get())
-        elif key in ['q', 'escape']:
+        elif key in ['q', 'escape'] or char == 'q':
             self.on_close()
 
     def init_game(self, size=4):

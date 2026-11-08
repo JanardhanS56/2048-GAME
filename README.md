@@ -28,7 +28,7 @@ This is a fully functional implementation of the classic 2048 puzzle game. Playe
 - 🎮 **Interactive 4x4 Game Board** - Classic 2048 gameplay mechanics
 - 🏆 **Score Tracking** - Real-time score updates and high score management
 - 🎯 **Win/Lose Detection** - Automatic game state management
-- ⌨️ **Keyboard Controls** - Smooth and responsive arrow key controls
+- ⌨️ **Keyboard Controls** - Smooth and responsive Arrow key and WASD controls
 - 🔄 **Random Tile Generation** - Proper implementation of tile spawning mechanics
 - 🎨 **Clean User Interface** - Easy-to-understand game board display
 - 📊 **Game Statistics** - Track your progress and performance
@@ -101,10 +101,16 @@ The game will start with a new 4x4 board with two initial tiles. Use the control
 
 | Key | Action |
 |-----|--------|
-| ⬆️ Arrow Up | Move tiles up |
-| ⬇️ Arrow Down | Move tiles down |
-| ⬅️ Arrow Left | Move tiles left |
-| ➡️ Arrow Right | Move tiles right |
+| ⬆️ Arrow Up / `W` | Move tiles up |
+| ⬇️ Arrow Down / `S` | Move tiles down |
+| ⬅️ Arrow Left / `A` | Move tiles left |
+| ➡️ Arrow Right / `D` | Move tiles right |
+| `T` | Toggle Dark Mode |
+| `H` | Toggle Hard Mode |
+| `Z` | Toggle Zombie Mode |
+| `R` | Toggle Rocks |
+| `C` | Get Hint |
+| `M` | Toggle Mute |
 | `Q` / `ESC` | Quit game |
 
 ## How to Play
